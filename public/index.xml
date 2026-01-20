@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dayyala Ravi</title>
+    <link>//localhost:1313/</link>
+    <description>Recent content on Dayyala Ravi</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 20 Jan 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Bash Cheatsheet</title>
+      <link>//localhost:1313/resources/linux/bash-cheatsheet/</link>
+      <pubDate>Sat, 20 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/linux/bash-cheatsheet/</guid>
+      <description>Essential Commands ls -la - List all files chmod +x - Make script executable </description>
+    </item>
+    <item>
+      <title>Nmap Basics</title>
+      <link>//localhost:1313/resources/networking/nmap_guid/</link>
+      <pubDate>Sat, 20 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/networking/nmap_guid/</guid>
+      <description>Basic Scan nmap -sV &amp;lt;target-ip&amp;gt;</description>
+    </item>
+    <item>
+      <title>What the shell??</title>
+      <link>//localhost:1313/resources/jr-pentester/what-the-shell/</link>
+      <pubDate>Sat, 20 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/what-the-shell/</guid>
+      <description>What the shell?? There are a variety of tools that we will be using to receive reverse shells and to send bind shells. In general terms, we need malicious shell code, as well as a way of interfacing with the resulting shell.&#xA;Netcat - A tradional swiss army knife of Networking.&#xA;Socat is like netcat on steroids. It can do all same things, and many more. Socat shells are usually more stable than netcat shells out of the box.</description>
+    </item>
+    <item>
+      <title>Showcase</title>
+      <link>//localhost:1313/showcase/</link>
+      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/showcase/</guid>
+      <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>About</title>
+      <link>//localhost:1313/about/</link>
+      <pubDate>Fri, 25 Jan 2019 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/about/</guid>
+      <description>Hi there My name is Radek and I&amp;rsquo;m the author of this theme. I made it to help you present your ideas easier.&#xA;We all know how hard is to start something on the web, especially these days. You need to prepare a bunch of stuff, configure them and when that’s done — create the content.&#xA;This theme is pretty basic and covers all of the essentials. All you have to do is start typing!</description>
+    </item>
+    <item>
+      <title>Hello Friend</title>
+      <link>//localhost:1313/posts/hello/</link>
+      <pubDate>Fri, 25 Jan 2019 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/posts/hello/</guid>
+      <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec interdum metus. Aenean rutrum ligula sodales ex auctor, sed tempus dui mollis. Curabitur ipsum dui, aliquet nec commodo at, tristique eget ante. Donec quis dolor nec nunc mollis interdum vel in purus. Sed vitae leo scelerisque, sollicitudin elit sed, congue ante. In augue nisl, vestibulum commodo est a, tristique porttitor est. Proin laoreet iaculis ornare. Nullam ut neque quam.&#xA;Fusce pharetra suscipit orci nec tempor.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/crunch/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/crunch/</guid>
+      <description>Crunch Crunch can generate all possible combinations and permutations according to given criteria. Basic Usage: crunch &amp;lt;min&amp;gt; &amp;lt;max&amp;gt; [options] min and max are minimu and maximum length of string you want the cruch to start. You can usually find the charset.lst file in the /usr/share/crunch directory if you have Crunch installed on your system. Examples # Example1: Crunch displays a wordlist that starts at `a` and ends at `zzzzzzzz` crunch 1 8 # Example2: Crunch display a wordlist using character set `abcdefg` that starts at `a` and ends at `gggggg` crunch 1 6 abcdefg # Example3: there is a space at the end of the character string.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/ffuf/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/ffuf/</guid>
+      <description>ffuf - Fuzz Faster U Fool A fast web fuzzer written in Go.&#xA;Wordlists Typical directory discovery ffuf -w wordlist.txt -u &#39;https://ffuf.io.fi/FUZZ&#39;&#xA;Custom FUZZ keyword example ffuf -w wordlist.txt:MYCUSTOMKEYWORD -u &#39;https://ffuf.io.fi/MYCUSTOMKEYWORD&#39;&#xA;Multi-wordlist example ffuf -w domains.txt:DOMAIN -w wordlist.txt:WORD -u &#39;https://DOMAIN/WORD&#39;&#xA;Multi-wordlist clusterbomb example This is the default mode for multi-wordlists, and is active if no other -mode is selected.&#xA;First word of first wordlist is tested against all the words from the second wordlist before moving along to test the second word in first wordlist against all the words in the second wordlist.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/gobuster/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/gobuster/</guid>
+      <description>GoBuster Gobuster is an open-source offensive tool written in Golang. It enumerates web directories, DNS subdomains, vhosts, Amazon S3 buckets, and Google Cloud Storage by brute force, using specific wordlists and handling the incoming responses. Enumeration is the act of listing all the available resources, whether they are accessible or not. For example, Gobuster enumerates web directories. Brute-force is the act of trying every possibility until a match is found. It is like having ten keys and trying them all on a lock until one fits.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/hashcat/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/hashcat/</guid>
+      <description>hashcat hashcat is the world&amp;rsquo;s fastest and most advanced password recovery utility, supporting five unique modes of attack for over 300 highly-optimized hashing algorithms. </description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/hydra/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/hydra/</guid>
+      <description>Hydra Hydra is a brute force online password cracking program, a quick system login password “hacking” tool.&#xA;According to its official repository, Hydra supports, i.e., has the ability to brute force the following protocols:&#xA;Asterisk, AFP, Cisco AAA, Cisco auth, Cisco enable, CVS, Firebird, FTP, HTTP-FORM-GET, HTTP-FORM-POST, HTTP-GET, HTTP-HEAD, HTTP-POST, HTTP-PROXY, HTTPS-FORM-GET, HTTPS-FORM-POST, HTTPS-GET, HTTPS-HEAD, HTTPS-POST, HTTP-Proxy, ICQ, IMAP, IRC, LDAP, MEMCACHED, MONGODB, MS-SQL, MYSQL, NCP, NNTP, Oracle Listener, Oracle SID, Oracle, PC-Anywhere, PCNFS, POP3, POSTGRES, Radmin, RDP, Rexec, Rlogin, Rsh, RTSP, SAP/R3, SIP, SMB, SMTP, SMTP Enum, SNMP v1+v2+v3, SOCKS5, SSH (v1 and v2), SSHKEY, Subversion, TeamSpeak (TS2), Telnet, VMware-Auth, VNC, and XMPP.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/john-the-ripper/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/john-the-ripper/</guid>
+      <description>John the Ripper John the Ripper is a well-known, well-loved, and versatile hash-cracking tool. It combines a fast cracking speed with an extraordinary range of compatible hash types. Basics Hash: A hash is a way of taking a piece of data of any length and representing it in another fixed-length form. This process masks the original value of the data. The hash value is obtained by running the original data through a hashing algorithm.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/nmap/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/nmap/</guid>
+      <description>NMAP (Network Mapper) Host Discovery Nmap was created by Gordon Lyon (Fyodor), a network security expert and open source programmer. It was released in 1997. Nmap, short for Network Mapper, is free, open-source software released under GPL license. Nmap is an industry-standard tool for mapping networks, identifying live hosts, and discovering running services. Nmap’s scripting engine can further extend its functionality, from fingerprinting services to exploiting vulnerabilities. Host Discovery Using ARP : If you want to use Nmap to discover online hosts without port-scanning the live systems, you can issue nmap -sn TARGETS.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/password-attacks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/password-attacks/</guid>
+      <description>Password Attacks Password cracking is considered one of the traditional techniques in pen-testing. The primary goal is to let the attacker escalate to higher privileges and access to a computer system or network. It is a technique performed locally or on systems controlled by the attacker.&#xA;Password guessing is a technique used to target online protocols and services. Therefore, it&amp;rsquo;s considered time-consuming and opens up the opportunity to generate logs for the failed login attempts.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/protocols-and-servers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/protocols-and-servers/</guid>
+      <description>Protocols and Servers Telnet Telnet ( an application layer protocol) is relatively simple. When user connects, asks for credentials. Upon authentication, the user will access remote system&amp;rsquo;s terminal. Unfortunately, all this communication between the client and telnet server is not encrypted, makingit an easy target for attackers. A telnet server uses Telnet protocol to listen for incoming connections on port 23. Its is no longer considered a secure option, expecially that anyone capturing your traffic will be able to discover your credentials which would grant them remote access to the system.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/recon/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/recon/</guid>
+      <description>Passive Reconnaissance: Rely on publicly available knowledge. It is the knowledge that you can access from publicly available resources without directly engaging with the target. Think of it like you are looking at target territory from afar without stepping foot on that territory. For Example: Looking up DNS records of a domain from a public DNS server. Checking job ads related to the target website. Reading news articles about the target company.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/vulnerabilites/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/vulnerabilites/</guid>
+      <description>Manual Search vs Automated search for vulnerabilities the vulnerability scanner Nessus has both a free (community) edition and commercial. The commercial version costing thousands of pounds for a year&amp;rsquo;s license will likely be used in organisations providing penetration testing services or audits. Frameworks such as Metasploit often have vulnerability scanners for some modules; Manual scanning for vulnerabilities is often the weapon of choice by a penetration tester when testing individual applications or programs.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/web-fundamentals-2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/web-fundamentals-2/</guid>
+      <description>Username enumeration with ffuf listing all the available usernames of the website. FUZZ keyword in the data, is being replaced by usernames in the wordlist ffuf -w /usr/share/wordlists/SecLists/Usernames/Names/names.txt -X POST -d &amp;#34;username=FUZZ&amp;amp;email=x&amp;amp;password=x&amp;amp;cpassword=x&amp;#34; -H &amp;#34;Content-Type: application/x-www-form-urlencoded&amp;#34; -u http://MACHINE_IP/customers/signup -mr &amp;#34;username already exists&amp;#34; brute forcing the login with avaiable usernames, assumed output from above pasted into valid_usernames.txt her we have two wordlist, so we have given them our own FUZZ keyword ffuf -w valid_usernames.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/web-fundamentals/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/web-fundamentals/</guid>
+      <description>Web-Fundamentals Manual - Favicon The favicon is a small icon displayed in the browser&amp;rsquo;s address bar or tab used for branding a website. Sometimes when frameworks are used to build a website, a favicon that is part of the installation gets leftover, and if the website developer doesn&amp;rsquo;t replace this with a custom one, this can give us a clue on what framework is in use OWASP host a database of common framework icons that you can use to check against the targets favicon https://wiki.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>//localhost:1313/resources/jr-pentester/web-raceconditions/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>//localhost:1313/resources/jr-pentester/web-raceconditions/</guid>
+      <description>Race Coditions A race condition is a situation in computer programs where the timing of events influences the behaviour and outcome of the program. It typically happens when a variable gets accessed and modified by multiple threads. Due to a lack of proper lock mechanisms and synchronization between the different threads, an attacker might abuse the system and apply a discount multiple times or make money transactions beyond their balance. </description>
+    </item>
+  </channel>
+</rss>

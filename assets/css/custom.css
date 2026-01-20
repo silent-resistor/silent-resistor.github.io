@@ -1,0 +1,24 @@
+details {
+    margin-bottom: 10px;
+    border-left: 2px solid #ff79c6; /* Or your theme color */
+    padding-left: 15px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #ff79c6; /* Matches the Terminal orange/pink */
+    list-style: none;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary:before {
+    content: "> ";
+}
+
+details[open] summary:before {
+    content: "v ";
+}

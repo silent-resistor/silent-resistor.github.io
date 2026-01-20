@@ -1,0 +1,53 @@
+{{ define "main" }}
+<main class="posts">
+  <div class="post">
+    <h1 class="post-title">{{ .Title }}</h1>
+    <div class="post-content">
+      {{ .Content }}
+
+      <div class="directory-tree">
+        {{ $resources := where .Site.RegularPages "Section" "resources" }}
+        
+        {{ $dirs := slice }}
+        {{ range $resources }}
+          {{ if .File }}
+            {{ $dirs = $dirs | append .File.Dir }}
+          {{ end }}
+        {{ end }}
+        {{ $uniqueDirs := $dirs | uniq | sort }}
+
+        {{ range $dir := $uniqueDirs }}
+          {{/* We clean the path 'resources/linux/' to just 'linux' */}}
+          {{ $parts := split (strings.TrimRight "/" $dir) "/" }}
+          {{ $folderName := index $parts (sub (len $parts) 1) | humanize }}
+          
+          <details open style="margin-bottom: 20px;">
+            <summary style="cursor:pointer; font-weight:bold; color:var(--theme-color, #ff79c6); font-size: 1.2rem;">
+              📂 {{ $folderName }}
+            </summary>
+            
+            <ul style="list-style: none; padding-left: 25px; margin-top: 10px; border-left: 1px dashed #444;">
+              {{ range $resources }}
+                {{ if eq .File.Dir $dir }}
+                  <li style="margin-bottom: 10px;">
+                    📄 <a href="{{ .Permalink }}" style="text-decoration: none;">{{ .Title }}</a>
+                  </li>
+                {{ end }}
+              {{ end }}
+            </ul>
+          </details>
+        {{ end }}
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<style>
+  .directory-tree a { color: inherit; }
+  .directory-tree a:hover { background: var(--theme-color, #ff79c6); color: #000 !important; }
+  summary::-webkit-details-marker { display: none; }
+  summary:before { content: "> "; font-family: monospace; }
+  details[open] summary:before { content: "v "; }
+</style>
+{{ end }}
