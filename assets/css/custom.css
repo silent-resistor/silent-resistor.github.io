@@ -1,14 +1,39 @@
+h1, h2, h3, h4, h5, h6 {
+    /* font-family: 'Courier New', monospace; */
+    color: #4eee85;
+}
+
+a:hover {
+    color: #000000;
+    background-color: #4eee85;
+    text-shadow: none;
+}
+
+.navigation-menu a:hover {
+    color: #000000 !important;
+    background-color: #4eee85 !important;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
 details {
     margin-bottom: 10px;
-    border-left: 2px solid #ff79c6; /* Or your theme color */
+    border-left: 2px solid #4eee85;
     padding-left: 15px;
 }
 
 summary {
     cursor: pointer;
     font-weight: bold;
-    color: #ff79c6; /* Matches the Terminal orange/pink */
+    color: #4eee85;
     list-style: none;
+
+}
+
+summary:hover {
+    color: #7fff9d;
+    text-shadow: 0 0 5px #4eee85;
+
 }
 
 summary::-webkit-details-marker {
@@ -21,4 +46,10 @@ summary:before {
 
 details[open] summary:before {
     content: "v ";
+}
+
+pre, code {
+    font-family: "Fira Code", "DejaVu Sans Mono", 'Consolas', monospace !important;
+    letter-spacing: 0;
+    font-variant-ligatures: none;
 }

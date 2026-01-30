@@ -21,7 +21,7 @@
           {{ $parts := split (strings.TrimRight "/" $dir) "/" }}
           {{ $folderName := index $parts (sub (len $parts) 1) | humanize }}
           
-          <details open style="margin-bottom: 20px;">
+          <details style="margin-bottom: 20px;">
             <summary style="cursor:pointer; font-weight:bold; color:var(--theme-color, #ff79c6); font-size: 1.2rem;">
               📂 {{ $folderName }}
             </summary>

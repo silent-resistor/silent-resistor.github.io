@@ -10,20 +10,17 @@ pagination.pagerSize = 5
   contentTypeName = "posts"
   showMenuItems = 4
   fullWidthTheme = false
-  centerTheme = false
+  centerTheme = true
+  customCSS = ["css/custom.css"]
 
 [languages]
   [languages.en]
-    title = "Dayyala Ravi"
-    subtitle = "Welcome to my first site :)"
-    keywords = ""
+    title = "Silent Resistor"
     copyright = ""
-    showmore = "show more" 
-    readMore = "Read more"
-    readOtherPosts = "Read other posts"
+
 
     [languages.en.params.logo]
-      logoText = "Dayyala Ravi"
+      logoText = "Silent Resistor"
       logoHomeLink = "/"
 
     [languages.en.menu]
@@ -32,21 +29,25 @@ pagination.pagerSize = 5
         identifier = "home"
         name = "Home"
         url = "/"
+        weight = 1
         
       [[languages.en.menu.main]]
         identifier = "about"
         name = "About"
         url = "/about"
+        weight = 2
       
       [[languages.en.menu.main]]
         identifier = "blogs"
         name = "Blogs"
         url = "/posts"
+        weight = 3 
 
       [[languages.en.menu.main]]
         identifier = "resources"
         name = "Resources"
         url = "/resources"
+        weight = 4
 
 
 
