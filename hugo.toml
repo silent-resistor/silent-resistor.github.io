@@ -1,4 +1,4 @@
-baseurl = "https://ravi13dayyala.github.io/testing-blog-site/"
+baseurl = "https://silent-resistor.github.io/"
 languageCode = "en-us"
 theme = "terminal"
 pagination.pagerSize = 5
