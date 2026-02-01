@@ -1,4 +1,4 @@
 ---
 title: "Resources"
 ---
-This is my automated resource library. New guides will appear here automatically.
+*This is my Loot bin — Stream-of-consciousness madness!*

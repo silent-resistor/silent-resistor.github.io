@@ -12,6 +12,7 @@ pagination.pagerSize = 5
   fullWidthTheme = false
   centerTheme = true
   customCSS = ["css/custom.css"]
+  favicon = "favicon.png"
 
 [languages]
   [languages.en]
@@ -38,8 +39,8 @@ pagination.pagerSize = 5
         weight = 2
       
       [[languages.en.menu.main]]
-        identifier = "blogs"
-        name = "Blogs"
+        identifier = "posts"
+        name = "Posts"
         url = "/posts"
         weight = 3 
 
