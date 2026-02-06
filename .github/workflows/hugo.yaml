@@ -25,17 +25,17 @@ jobs:
           hugo-version: '0.155.0'
           extended: true
         
-      - name: check hugo version
-        run: hugo version
+      # - name: check hugo version
+      #   run: hugo version
       
-      - name: list contents files
-        run: find public/ -type f | sort
+      # - name: list contents files
+      #   run: find public/ -type f | sort
 
-      - name: list hugo contect
-        run: hugo list all
+      # - name: list hugo contect
+      #   run: hugo list all
 
-      - name: show environment
-        run: env | sort
+      # - name: show environment
+      #   run: env | sort
 
       - name: Build
         run: hugo --minify
