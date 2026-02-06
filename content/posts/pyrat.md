@@ -1,5 +1,5 @@
 +++
-title = "Pyrat CTF on tryhackme"
+title = "Pyrat CTF - Reverse shell - tryhackme"
 date = "2025-01-25"
 author = "Silent Resistor"
 +++

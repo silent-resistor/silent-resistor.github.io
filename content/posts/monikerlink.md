@@ -1,5 +1,5 @@
 +++
-title = "MonikerLink CTF - Tryhackme"
+title = "MonikerLink CTF - Jr Pentester - Tryhackme"
 date = "2025-01-25"
 author = "Silent Resistor"
 +++

@@ -194,7 +194,7 @@ input[type="checkbox"]:checked {
 img {
   display: block;
   max-width: 100%;
-  border: 8px solid var(--accent);
+  border: 0px solid var(--accent);
   border-radius: var(--radius);
   padding: 8px;
   overflow: hidden;
@@ -443,7 +443,7 @@ blockquote.twitter-tweet::before {
   display: flex;
   flex-direction: column;
   padding: 40px;
-  max-width: 864px;
+  max-width: 1200px;
   min-height: 100vh;
   border-right: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
 }

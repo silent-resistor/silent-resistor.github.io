@@ -1,5 +1,5 @@
 +++
-title = "Tom Ghost"
+title = "Tom Ghost - TOMCAT - Tryhackme"
 date = "2025-01-31"
 author = "Silent Resistor"
 +++

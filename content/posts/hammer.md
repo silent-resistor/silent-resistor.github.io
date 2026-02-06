@@ -1,5 +1,5 @@
 +++
-title = "Hammer - Web-pentesting"
+title = "Hammer - Web-pentesting - tryhackme"
 date = "2026-01-31"
 author = "Silent Resistor"
 +++
