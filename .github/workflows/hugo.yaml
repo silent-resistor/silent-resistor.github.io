@@ -18,13 +18,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: 'latest'
+          hugo-version: '0.155.0'
           extended: true
+        
+      - name: check hugo version
+        run: hugo version
+      
+      - name: list contents files
+        run: find public/ -type f | sort
+
+      - name: list hugo contect
+        run: hugo list all
+
+      - name: show environment
+        run: env | sort
+
       - name: Build
         run: hugo --minify
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
