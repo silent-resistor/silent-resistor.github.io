@@ -1,0 +1,437 @@
+<style>
+    /* Terminal typing effect for  headers */
+    .terminal-typing {
+        overflow: hidden;
+        border-right: .15em solid #0f0;
+        white-space: nowrap;
+        margin: 0;
+        animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+    }
+
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: #0f0 }
+    }
+
+    /* Glowing effect for Headers */
+    .glow {
+        text-shadow: 0 0 3px rgba(0, 255, 0, 0.7);
+        animation: glow-pulse 2s infinite alternate;
+    }
+
+    @keyframes glow-pulse {
+        from { text-shadow: 0 0 3px rgba(0, 255, 0, 0.7); }
+        to { text-shadow: 0 0 10px rgba(0, 255, 0, 0.9); }
+    }
+
+    /* Fade-in animation for content sections */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fade-in 1s forwards;
+        animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes fade-in {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+    }
+
+    /* Suble hover effect for interactive elements */
+
+    .interactive {
+        transition: all 0.3s ease;
+    }
+
+    .interactive:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 255, 0, 0.2);
+    }
+
+</style>
+
+
+
+<script>
+    
+    // // Enahced lightening effect
+    function drawLightningBolt(x1, y1, x2, y2, thickness, color, ctx) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+
+        // Create a jagged path for the lightning bolt
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const segments = Math.max(5, Math.floor(distance / 15));
+
+        let points = [{ x: x1, y: y1 }];
+
+        // Generate jagged path with random offsets
+        for (let i = 1; i < segments; i++) {
+            ctx.strokeStyle = color.replace('}', `, ${0.2 + (i * 0.2)})`).replace('hs1' , 'hsla');
+            ctx.lineWidth = thickness * (i * 0.5);
+            ctx.beginPath();
+            const t = i / segments;
+            const variance = 0.4 * (1 - t * 0.8); 
+
+            const nx = x1 + dx * t + (Math.random() * 2 -1 ) * 50 * variance;
+            const ny = y1 + dy * t + (Math.random() * 2 - 1) * 50 * variance;
+            
+            points.push({ x: nx, y: ny });
+        }
+
+        points.push({ x: x2, y: y2 });
+
+        // Draw the main bolt
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+
+        // add branches
+        for (let i = 1; i < points.length - 1; i++) {
+            if (Math.random() < 0.5) {
+                const branchLength = 20 + Math.random() * 80;
+                const angle = Math.atan2(
+                    points[i + 1].y - points[i].y,
+                    points[i + 1].x - points[i].x
+                ) + (Math.random() - 0.5) * 1.5;
+
+                const bx = points[i].x + Math.cos(angle) * branchLength;
+                const by = points[i].y + Math.sin(angle) * branchLength;
+
+                // Draw main branch
+                ctx.beginPath();
+                ctx.moveTo(points[i].x, points[i].y);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+
+                // ADd sub-branches (50% chance)
+                if (Math.random() < 0.5) {
+                    const subBranchLength = 10 + Math.random() * 40;
+                    const subAngle = angle + (Math.random() - 0.5) * 1.0;
+                    const sbx = bx + Math.cos(subAngle) * subBranchLength;
+                    const sby = by + Math.sin(subAngle) * subBranchLength;
+
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by);
+                    ctx.lineTo(sbx, sby);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    // Create lightning effect 
+    function createLightning() {
+
+        const canvas = document.getElementById('lightningCanvas');
+        const ctx = canvas.getContext('2d');
+        const flash = document.getElementById('lightningFlash');
+
+        // clear canvas completely
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Generate random start point near top
+        const startX = canvas.width * 0.1 + Math.random() * canvas.width * 0.8;
+        const startY = 0;
+
+        // Generate random end point in lower hald
+        const endX = startX + (Math.random() - 0.5) * canvas.width * 0.8;
+        const endY = canvas.height * 0.8 + Math.random() * canvas.height * 0.2;
+
+        // Flash effect - quick bright flash
+        flash.style.backgroundColor = `hsla(${120 + Math.random() * 20 }, 100%, 85%, 0.7)`;
+        flash.style.opacity = '1';
+
+        // Draw the main bolt - main bolt
+        const boltColor = `hsla(${120 + Math.random() * 20}, 100%, 75%, 0.9)`;
+
+        // Draw First flash
+        drawLightningBolt(
+            startX, startY,
+            endX, endY,
+            2 + Math.random() * 3,
+            boltColor,
+            ctx
+        );
+
+        // quick fade out
+        setTimeout(() => {
+            // clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            flash.style.opacity = '0';
+
+            // Sometime add a second flash, smaller bolt
+
+            if (Math.random() > 0.6) {
+                setTimeout(() => {
+                    flash.style.opacity = '0.4';
+                    drawLightningBolt(
+                        startX + (Math.random() - 0.5) * 50,
+                        startY,
+                        endX + (Math.random() - 0.5) * 50,
+                        endY,
+                        1 + Math.random() * 2,
+                        boltColor,
+                        ctx
+                    );
+
+                    // clear again
+                    setTimeout(() => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        flash.style.opacity = '0';
+                    }, 50 + Math.random() * 50);
+                }, 100 + Math.random() * 100);
+            }
+        }, 30 + Math.random() * 50);
+
+        // Shedule next lightening strike with random delay
+
+        const nextDelay = 1000 + Math.random() * 2000;
+        setTimeout(createLightning, 2000);
+
+    }
+
+
+    // Wait for the page to load
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const isHomePage = window.location.pathname === '/' ||
+            window.location.pathname === '/index.html' ||
+            window.location.pathname.includes('/home');
+
+        // Add terminal typing effect to main header
+        const mainHeader = document.querySelector('h1');
+        if (mainHeader) {
+            mainHeader.classList.add('terminal-typing');
+        }
+
+        //  Add glow effect to important haders
+        const importantElements = document.querySelectorAll('h2, .logo');
+        importantElements.forEach(el => {
+            el.classList.add('glow');
+        });
+
+
+        // Add fade-in effect to content sections
+        const contentSections = document.querySelectorAll('article, section, .post');
+        contentSections.forEach((section, index) => {
+            section.classList.add('fade-in');
+            section.style.setProperty('--delay', `${index * 0.2}s`);
+        });
+
+        // Add interactive hover effect to links and buttons
+        const interactiveElements = document.querySelectorAll('a.button, .post-link');
+        interactiveElements.forEach(el => {
+            el.classList.add('interactive');
+        });
+
+        if (isHomePage) {
+
+            // create lighnening canvas
+            const canvas = document.createElement('canvas');
+
+            canvas.id = 'lightningCanvas';
+            canvas.style.padding = 'fixed';
+            canvas.style.left = '0';
+            canvas.style.top = '0';
+            canvas.style.pointerEvents =canvas
+            canvas.style.zIndex = '-1';
+            document.body.appendChild(canvas);
+
+            const flash = document.createElement('div');
+            flash.id = 'lightningFlash';
+            flash.style.position = 'fixed';
+            flash.style.left = '0';
+            flash.style.top = '0';
+            flash.style.width = '100%';
+            flash.style.height = '100%';
+            flash.style.pointerEvents = 'none';
+            flash.style.transition = 'opacity 0.2s ease-out';
+            flash.style.zIndex = '-2';
+            flash.style.opacity = '0';
+            document.body.appendChild(flash);
+
+
+            // Set intial canvas size 
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+
+            // Start lightning effect
+            setTimeout(createLightning, 2000);
+        }
+    });
+</script>
+
+
+<style>
+    #particles-js {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    #lightningCanvas {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        /* litlle change */
+        pointer-events: none;
+        opacity: 0.9;
+    }
+
+    #lightningFlash {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 9998; 
+        background: rgba(150,255, 150, 0.1);
+        /* little chagne */
+        pointer-events: none;
+        transition: opacity 0.1s ease-out;
+        opacity: 0;
+        mix-blend-mode: screen;
+    }
+
+    #lightningFlash, lightning-active {
+        opacity: 1;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at center, #000100 0%, #000000 70%);
+        z-index: -1;
+        pointer-events: none;
+    } 
+
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.id = 'particles-js';
+        document.body.appendChild(particlesContainer);
+
+        // Intialize particles.js
+        particlesJS('particles-js', {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#00ff00"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    }
+                },
+                "opacity": {
+                    "value": 0.3,
+                    "random": true,
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#00ff00",
+                    "opacity": 0.2,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1,
+                    "directions": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out", 
+                    "bounce": false,
+            
+                },
+
+
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab",
+                    },
+                    "onclick": {
+                        "enable": false,
+                    },
+                    "resize": true,
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 0.5,
+                        }
+                    }
+                }    
+            },
+            "retina_detect": true,
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
