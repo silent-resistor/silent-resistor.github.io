@@ -4,8 +4,12 @@
             {{ . }}
         </div>
     {{ end }}
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search posts..." aria-label="Search posts">
+    </div>
 
-    <dev class="posts">
+    <div class="posts">
         {{ range .Paginator.Pages }}
             <article class="post on-list">
                 <h2 class="post-title">
@@ -41,5 +45,52 @@
                 {{ end }}
             </article>
         {{ end }}
-    </dev>
+    </div>
+
+    <!-- Add javascript for search functionality -->
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const posts = document.querySelectorAll('.post.on-list');
+
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+
+                posts.forEach(function(post) {
+                    const title = post.querySelector('.post-title').textContent.toLowerCase();
+                    const content = post.querySelector('.post-content') ? post.querySelector('.post-content').textContent.toLowerCase(): '';
+                    const tags = post.querySelector('.post-tags') ? post.querySelector('post-tags').textContent.toLowerCase() : '';
+                    
+                    if (title.includes(searchTerm) || content.includes(searchTerm) || tags.includes(searchTerm)) {
+                        post.style.display = '';
+                    } else {
+                        post.style.display = 'none';
+                    }
+                })
+            })
+        })
+     </script>
+
+    <!-- Add some basix styling for search box -->
+    <style>
+        .search-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: var(--backgroud);
+            color: var(--color);
+        }
+        #searchInput:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+    </style>
+
 {{ end }}

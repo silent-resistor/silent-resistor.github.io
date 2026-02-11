@@ -2,6 +2,8 @@
 title = "Injectics - Web-pentesting - Tryhackme"
 date = "2026-02-08"
 author = "Silent Resistor"
+# cover = '/favicon.png'
+# Toc = true
 +++
 
 ## Part1: Reconnissance

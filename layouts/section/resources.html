@@ -2,8 +2,13 @@
 <main class="posts">
   <div class="post">
     <h1 class="post-title">{{ .Title }}</h1>
+    
     <div class="post-content">
       {{ .Content }}
+
+      <div class="search-container">
+        <input type="text" id="resourceSearchInput" placeholder="Search resources..." aria-label="Search resources">
+      </div>
 
       <div class="directory-tree">
         {{ $resources := where .Site.RegularPages "Section" "resources" }}
@@ -49,5 +54,95 @@
   summary::-webkit-details-marker { display: none; }
   summary:before { content: "> "; font-family: monospace; }
   details[open] summary:before { content: "v "; }
+
+  .search-container {
+    margin: 20px 0;
+  }
+
+  #resourceSearchInput {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background: var(--background-color);
+    color: var(--text-color);
+    margin-bottom: 20px;
+  }
+
+  #resourceSearchInput:focus {
+    border-color: var(--theme-color, #ff79c6);
+    outline: none;
+  }
+
+  .resource-item.hidden {
+    display: none;
+  }
+
+  .no-results {
+    padding: 10px;
+    font-style: italic;
+    color: #888;
+  }
+
+
 </style>
+
+
+<script>
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("resourceSearchInput");
+    const resourceItems = document.querySelectorAll(".directory-tree li");
+    const folders = document.querySelectorAll('details');
+    
+    searchInput.addEventListener("input", function() {
+      const searchTerm = this.value.toLowerCase();
+      let hasVisibleItems = false;
+
+      resourceItems.forEach(item => {
+        const title = item.textContent.toLowerCase();
+        const foldername = item.closest('details').querySelector('summary').textContent.toLowerCase();
+        if (title.includes(searchTerm) || foldername.includes(searchTerm)) {
+          item.style.display = "";
+          hasVisibleItems = true;
+        } else {
+          item.style.display = "none";
+        }
+
+      });
+
+      folders.forEach(folder => {
+        const items = folder.querySelectorAll("li");
+        let folderHasVisibleItems = false;
+        items.forEach(item => {
+          if (item.style.display !== "none") {
+            folderHasVisibleItems = true;
+          }
+        });
+        if (folderHasVisibleItems) {
+          folder.setAttribute("open", true);
+        } else {
+          folder.removeAttribute("open");
+        }
+      });
+
+      let noResultsMsg = document.querySelector(".no-results");
+      if (!hasVisibleItems && searchTerm) {
+        if (!noResultsMsg) {
+          noResultsMsg = document.createElement("div");
+          noResultsMsg.className = "no-results";
+          noResultsMsg.textContent = "No resources found matching your search.";
+          document.querySelector(".directory-tree").appendChild(noResultsMsg);
+        }
+      } else if (noResultsMsg) {
+        noResultsMsg.remove();
+      }
+
+    });
+
+  });
+
+</script>
+
 {{ end }}
