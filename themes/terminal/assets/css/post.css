@@ -54,7 +54,7 @@
 .post-title::after {
   content: "";
   position: absolute;
-  bottom: 2px;
+  bottom: -2px;
   display: block;
   width: 100%;
   border-bottom: 3px dotted var(--accent);
