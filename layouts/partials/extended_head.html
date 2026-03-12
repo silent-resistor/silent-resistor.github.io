@@ -427,6 +427,50 @@
     });
 </script>
 
+<script>
+// TOC Toggle Function
+function toggleTOC() {
+    const tocContainer = document.getElementById('toc-container');
+    const tocIcon = document.getElementById('toc-toggle-icon');
+    
+    if (tocContainer.classList.contains('hidden')) {
+        tocContainer.classList.remove('hidden');
+        tocContainer.classList.add('visible');
+        document.body.classList.add('toc-open');
+        tocIcon.textContent = '✕';
+        localStorage.setItem('toc-hidden', 'false');
+    } else {
+        tocContainer.classList.remove('visible');
+        tocContainer.classList.add('hidden');
+        document.body.classList.remove('toc-open');
+        tocIcon.textContent = '☰';
+        localStorage.setItem('toc-hidden', 'true');
+    }
+}
+
+// Restore TOC state on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const tocHidden = localStorage.getItem('toc-hidden') !== 'false'; // Default to hidden
+    const tocContainer = document.getElementById('toc-container');
+    const tocIcon = document.getElementById('toc-toggle-icon');
+
+    // Ensure body starts without toc-open class
+    document.body.classList.remove('toc-open');
+
+    if (tocContainer) {
+        // Start with hidden state
+        tocContainer.classList.add('hidden');
+        tocContainer.classList.remove('visible');
+        tocIcon.textContent = '☰';
+
+        // Only show if explicitly set to visible
+        if (!tocHidden) {
+            toggleTOC();
+        }
+    }
+});
+</script>
+
 
 
 

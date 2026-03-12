@@ -16,6 +16,203 @@ a:hover {
     border-radius: 3px;
 }
 
+/* TOC Sidebar Styles - Simple and reliable */
+.post-container {
+    position: relative;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+}
+
+.post-main {
+    width: 100%;
+}
+
+.post-toc {
+    position: fixed;
+    right: -300px;
+    top: 0;
+    width: 300px;
+    height: 100vh;
+    background: rgba(26, 26, 26, 0.95);
+    border-left: 2px solid #4eee85;
+    padding: 2rem 1.5rem;
+    transition: right 0.3s ease;
+    z-index: 9999;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4eee85 #1a1a1a;
+}
+
+/* Custom scrollbar for TOC */
+.post-toc::-webkit-scrollbar {
+    width: 8px;
+}
+
+.post-toc::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.post-toc::-webkit-scrollbar-thumb {
+    background: #4eee85;
+    border-radius: 4px;
+}
+
+.post-toc::-webkit-scrollbar-thumb:hover {
+    background: #7fff9d;
+}
+
+.post-toc.visible {
+    right: 0;
+}
+
+.post-toc.hidden {
+    right: -300px;
+}
+
+/* Simple page slide - only on screens >= 1350px */
+body.toc-open {
+    margin-left: -150px;
+}
+
+/* If screen < 1350px, TOC doesn't move page content */
+@media (max-width: 1349px) {
+    body.toc-open {
+        margin-left: 0; /* No page movement */
+    }
+    
+    /* TOC takes full screen on smaller displays */
+    .post-toc {
+        position: fixed;
+        right: -100vw;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        border-left: none;
+        border-right: 2px solid #4eee85;
+        transition: right 0.3s ease;
+        z-index: 9999;
+    }
+    
+    .post-toc.visible {
+        right: 0;
+    }
+    
+    .post-toc.hidden {
+        right: -100vw;
+    }
+}
+
+body {
+    transition: margin-left 0.3s ease;
+}
+
+/* Floating TOC Toggle Button */
+.toc-toggle-btn {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(26, 26, 26, 0.9);
+    border: 2px solid #4eee85;
+    color: #4eee85;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    z-index: 10001; /* Higher than TOC */
+}
+
+.toc-toggle-btn:hover {
+    background: #4eee85;
+    color: #000000;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.post-toc.hidden #toc-content {
+    display: none;
+}
+
+.post-toc ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.post-toc li {
+    margin-bottom: 0.5rem;
+}
+
+.post-toc a {
+    color: #4eee85;
+    text-decoration: none;
+    display: block;
+    padding: 0.25rem 0;
+    transition: color 0.2s ease;
+}
+
+.post-toc a:hover {
+    color: #7fff9d;
+}
+
+.post-toc.hidden #toc-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.post-toc h3 {
+    color: #4eee85;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #4eee85;
+    padding-bottom: 0.5rem;
+    font-weight: normal;
+}
+
+.post-toc ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.post-toc li {
+    margin-bottom: 0.8rem;
+}
+
+.post-toc a {
+    color: #4eee85;
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: block;
+    padding: 4px 0;
+    transition: all 0.2s ease;
+    font-family: monospace;
+}
+
+.post-toc a:hover {
+    color: #000000;
+    background-color: #4eee85;
+    text-shadow: none;
+    padding-left: 8px;
+    border-radius: 2px;
+}
+
+/* TOC nested items */
+.post-toc ul ul {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 1px solid #333;
+}
+
+.post-toc ul ul a {
+    font-size: 0.85rem;
+    color: #7fff9d;
+}
+
 details {
     margin-bottom: 10px;
     border-left: 2px solid #4eee85;
