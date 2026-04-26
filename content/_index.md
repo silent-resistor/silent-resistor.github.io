@@ -27,4 +27,4 @@ drwxr-xr-x      resources/      # Notes and Cheatsheets
 
 ---
 
-*The quietest ones break the loudest systems!*
+*The quieter you become, the more you able to hear*

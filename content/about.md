@@ -9,26 +9,28 @@ Toc = true
 silent_resistor
 
 ## > cat ~/.bio
-My name is **Silent Resistor** - and no, I'm not a resistor from your electronics class (though I do resist sleep while learning new exploits).   
-I'm a **junior pentester** currently stuck in the "I have no idea what I'm doing, but it's working!" phase of my career. You know that feeling when you accidentally get root and have no idea what you did? Yeah, that's my daily life.
+I live in the quite space between building resilient systems and figuring out how they break.   
 
-## > systemctl show \*${CURRENT_TASKS}\*.service -P Id,Description 
-- **learning.service** - TryHackMe rooms and YouTube at 2AM at night because my brain won't shut up about that one flag I couldn't capture. Sleep? She packed her bags and left without forwarding address.
-- **ctf-solving.service** - Jumping between Rootme, OverTheWire, TryHackMe, and Hackthebox because staying in one place feels like commitment, and commitment feels like getting hurt again.
-- **cve-reader.service** - Reading CVE blogs and exploits I'll never understand, never use. But for 5 minutes, I feel like I might actually be good at something before the doubt crashes back in.
-- **practice.service** - 85% confusion, 9% begging AI for help, 5% frantic Googling, 1% "wait, it worked?!" moments that keep me alive for another day.
+By day, I am a Devops engineer architecting private clouds and wrangling automation to withstand the chaos of enterprise environments. By night, I switch sides, trying to understand how those same systems can be dismantled.  
+
+Despite what the degree on my wall or the title on my resume says, I am often just a guy staring at a blinking cursor at 3 AM, wondering why my packets are ghosting me. I'm not an advanced malware developer (yet) - Just a student of the craft who knows the thrill of a Metasploit shell, and the peotic irony of code doing exactly what it was never supposed to do.
+
+## > systemctl show \*${current_tasks}\*.service -P Id,Description 
+- **infrastructure.service** - Orchestrating the silent chaos of background servers. Trying to write automation so smooth it feels like peotry...until a single misplaced YAML space reminds me how fragile the digital world really is.
+- **exploration.service** - TryHackMe and Youtube deep-dives at 2 AM. My brain is a black hole of curiosity, and I'm still searching for the flag that keeps me awake.
+- **ctf-grind.service** - Jumping between Root-me, OverTheWire, TryHackMe. Because commiting to one platform is scary, but a stable reverse shell ? That's true love.
+- **practice.service** - 85% "Wait, it worked?", 15% begging the terminal for mercy, and 5% frantic Googling while hoping I didn't just break the environment.
 
 ## > cat ~/.config/personal_traits
-- I talk to my terminal more than I talk to real people
-- I enjoy breaking things - legally, of course
-- Linux is my happy place, Windows confuses me
-- Dark mode everything, always
-- Reverse shells make me happy
-- I collect VMs like others collect shoes
+- I speak Bash more fluently than my native tongue.
+- I build things just to see how they fail apart, and break things just to learn how to put them back together.
+- Linux is my home, but I study Windows Internals deeply. Sun Tzu said: "*If you know the enemy and know yourself, you need not fear the result of a hundred battles.*"
+- Dark mode isn't just a preference, it's a way of life.
+- I treat my virtual machines better than I treat my sleep schedule.
 
 ## > cat ~/.config/my_goal
-To pop shells, catch flags, and maybe one day get paid for breaking stuff instead of fixing it.
+To stay forever in the "I have no idea what I'm doing" phase, because that's where the true magic happens. Pop a shell, catch a flag, and keep the infrastructure standing while I do it.
 
 ---
 
-*If you're here, you're probably lost. But stick around - we can be confused together!*
+*Silent in the background. Root on the server.*
