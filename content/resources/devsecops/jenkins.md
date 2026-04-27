@@ -8,13 +8,16 @@ date: 2026-01-20
 ### 1.1 Can you integrate the jenkins with the Bitbucket and create the multibranch pipeline ? 
 - Integrating your on-presise bitbucket server with Jenkins is great move, allows jenkins to automatically detect new branches, trigger builds when developers push code, and report build status (pass/fail) directly back to Bibucket PR UI.
 - Here is Straight forward way to getting Bitbucket and jenkins talking to each other natively.
+
 #### 1.1.1 Generate a token in Bitbucket server
   - Create Bot account with minimum permissions (alteast read, if possible write operation to allow jenkins to put green or red checkmarks next to our commits in Bitbucket)
   - Create the Personal access token with above account, name it something like `jenkins-bot`
   - Copy the token and keep it somewhere safe.
+
 #### 1.1.2 Install required plugins in the Jenkins
     - Install Plugins like `Bitbucket`, `Bitbucket Branch Source Plugin` Using Jenkins plugin manager.
     - Restart the Jenkins
+
 #### 1.1.3 Add Token to Jenkins credentials
     - Go to `manage jenkins` -> `credentials`
     - Click into `System` store, then `Global credentials`, click `add credentials`
@@ -23,6 +26,7 @@ date: 2026-01-20
       - Password; paster the Personal access token you have copied earlier.
       - ID/Description: Name it `bitbucket-server-token`, so its easy to find later.
       - Click `Create`
+
 #### 1.1.4 Configure the Server Connection
   - Lets tell jenkins where your bitbucket server lives
   - Go to `Maanage` -> `System` -> `Bitbucket endpoints` -> `Add` -> `Bitbucket server`
@@ -70,6 +74,7 @@ date: 2026-01-20
     - Add the following content: `Environment="GIT_SSL_NO_VERIFY=true"` under `[Service]` section
     - `sudo systemctl daemon-reload`
     - `sudo systemctl restart jenkins`
+
 #### 1.1.5 Create Multi-branch Pipeline in Jenkins
   - Go to Jenkins -> New Item -> Multi-branch Pipeline -> Give a name -> Create it.
   - Add bitbucket as the source: 
@@ -81,6 +86,7 @@ date: 2026-01-20
     - Lets add `Discover branches` trait, and that set to `All branches`,not just pull requests.
     - Select the `Filter by name (with wildcards)` option, and enter `main` or `master` in the include box, and leave the exclude box empty for the time being.
   - click and save the configuration.
+
 #### 1.1.6 Create Jenkinsfile and now push it to the repository
   - Create a `Jenkinsfile` in the root of your repository and push it to `main` branch.
     ```groovy
@@ -121,6 +127,7 @@ date: 2026-01-20
         }
     }
     ```
+
 #### 1.1.7 Trigger the pipeline
   - Go to your multi-branch pipeline and click `Build Now` to trigger the pipeline.
 
@@ -264,12 +271,131 @@ date: 2026-01-20
 
 
 
+## 1.4 How to investigate Jenkins Pod deletions Trap ? (The OOMKills)
+- All data of pod deletions is for sure available in the prometheous database, if they are not visible in the grafana, then we have to pull the data out using promql queries.
+- For getting a historical memory usage:
+  `container_memory_working_get_bytes{pod=~".*jenkins.*", container!="POD", container!=""}`
+- cpu usage:
+  `rate(container_cpu_usage_seconds_total{pod=~".*jenkins.*", container!="POD", container!=""}[5m])`
+- pod restarts:
+  `kube_pod_container_status_restarts_total{pod=~".*jenkins.*"}`  
 
 
 
+## 1.5 Can we migrate the existing Jenkins instance on a virtual machine into something that runs directly on the Kubernetes cluster? Is it possible? How hard is it?
+- This is originally the concept of "Pets vs. Cattle" in server management. 
+- Running Jenkins on a Virtual machine makes it a "pet" (you have to feed it, care for it, and if it dies, you are devastated)
+- Moving it to Kubernetes makes it "cattle" (highly available, easily replaceable, and decoupled from the underlying infrastructure)
+- To answer the question, it's absolutely possible, and as far as how hard it is? It depends on how heavily the current Jenkins setup relies on the underlying virtual machine.
+- **Secret to Migration:** The beautiful (and sometimes frustrating) thing about Jenkins is that it does not use a traditional database like MySQL or PostgreSQL. Absolutely everything - your configurations, user data, plugin binaries, job definitions, and build history - lives in a single directory, usually located at `/var/lib/jenkins` on the virtual machine.
+- Our **Migration Plan** is simple: we can tar gzip this directory and try to keep it in a persistent volume, which can later be attached to the Jenkins pod in the Kubernetes cluster. 
+- **Dummy Pod Solution for Chicken-and-egg problem:**
+  - core problem: We have just created a brand new, empty persistent volume in kubernetes cluster, how do you get your jenkins.tar.gz file (`/var/lib/jenkins` data) into it?
+  - Ok, if this were a physical server, you would plug hard drive into motherboard, format it, and copy files over. But in kubernetes, this PV is a virtual block of storage floating in cluster. We cannot `scp` or `ssh` directly into a hard drive. 
+  - A hard drive must be attached to a running OS to accept the files. In kubernetes, the "running OS" is a Pod.
+  - Here is why we dont just attach empty PV to the real jenkins pod
+    - If we start the jenkins helm chart with empty PVC, jenkins will wake up, see an empty folder, and immediately start running its "first time setup" wizard. It will create new, blank configuration files.
+    - We dont want a blank jenkins, we want our original jenkins.
+  - There, we use a **Dummy Pod**
+    - We spin up a tiny, temporary Pod with the empty PVC to it. Think of this as plugging an external USB drive into a temperary laptop.
+    - We use `kubectl cp` to copy the jenkins.tar.gz file from our local machine to this dummy pod, and extract it into a mounted volume.
+    - Now PVC contains all our jenkins data.
+    - We throw away the temporary dummy pod. (delete it)
+    - Finally, we spin up the real jenkins Pod and attach that same PVC. Jenkins wakes up, sees all old configurations, and skips setup wizard entirely.
+- **Actions:**
+  - Copy the jenkins data to the K8s control node
+  ```bash
+  # SSH into your virual machine
+  cd /var/lib; tar -cvzf jenkins.tar.gz jenkins
+  # copy it to the control node of k8s cluster
+  scp jenkins.tar.gz user@control-node:k8s/
+  ```
+  - Lets create the PVC for jenkins data
+  ```bash
+  # Create a PVC for jenkins data
+  cat <<EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata: 
+    name: jenkins-pvc
+    namespace: jenkins
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+  EOF
 
+  # Create the dummy pod
+  cat <<EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: dummy-pod
+    namespace: jenkins
+  spec:
+    containers:
+    - name: dummy-container
+      image: ubuntu:latest
+      command: ["sleep", "infinity"]
+      volumeMounts:
+      - mountPath: /var/jenkins_home
+        name: jenkins-storage
+    volumes:
+    - name: jenkins-storage
+      persistentVolumeClaim:
+        claimName: jenkins-pvc
+  EOF
 
+  # lets wait here till the pod comes up
+  kubectl wait --for=condition=Ready pod/dummy-pod --timeout=60s -n jenkins
 
+  # Copy the tar.gz file into the 
+  kubectl cp k8s/jenkins.tar.gz dummy-pod:/var/jenkins_home/jenkins.tar.gz
+  kubectl exec -it dummy-pod -n jenkins -- bash
+  # Inside container
+  cd /var/jenkins_home
+  tar -xvzf jenkins.tar.gz
+  mv jenkins/* .; rm -rf jenkins jenkins.tar.gz
+  chown -R 1000:1000 /var/jenkins_home
 
+  # Lets get out of the container, and delete it.
+  kubectl delete pod/dummy-pod -n jenkins
+  ```
+  - Now its time to Deploy jenkins in cluster. And with the jenkins helm chart, we can specify the PVC to use.
+  - By default, the jenkins helm charts wants to create a brand new, empty Persistant Volume. We need to tell the chart, "No thanks, I already brought my own data".
+  - Lets create custom values file for jenkins helm chart
+  ```yaml
+  # jenkins-values.yaml
+  controller:
+    # Expose the Jenkins UI vi NodePort
+    serviceType: NodePort
+    nodePort: 32001
+  persistence:
+    enabled: true
+    existingClaim: jenkins-pvc
+  ```
+  - Now lets install jenkins with the custom values file
+  ```bash
+  helm repo add jenkins https://charts.jenkins.io
+  helm repo update
+  helm install jenkins jenkins/jenkins -f jenkins-values.yaml -n jenkins --create-namespace
+  # watch it boot up
+  kubectl get pods -n jenkins -w
+  ```
+  - Once the pod is ready, lets get the admin password
+  ```bash
+  kubectl get secret jenkins -n jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode
+  ```
+  - Now lets access jenkins UI
+  ```bash
+  # Get the node port
+  kubectl get svc jenkins -n jenkins
+  ```
+  - Open your browser and navigate to `http://<control-node-ip>:32001`
+  - Login with the admin password you got above
+  
+  
 
 

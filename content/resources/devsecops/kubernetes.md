@@ -255,7 +255,7 @@ date: 2026-01-20
   # we will manually generate a long-live token that can be used by jenkins to login in and spin up pods here
   kubectl create token jenkins-agent --duration=87600h
 
-  # Get your cluster ip address, so jenkins knows exactly where to knock the door 
+  # Get your cluster address (ip:port), so jenkins knows exactly where to knock the door 
   kubectl cluster-info | grep "control plane"
   ```
 - Now we have jump over to jenkins and configure the kubernetes plugin there.
@@ -263,17 +263,20 @@ date: 2026-01-20
     - Search for "Kubernetes" and install the plugin
     - Go to Manage Jenkins -> Configure System -> Cloud -> Add a new cloud -> Kubernetes
     - In the configuration
-      - Kubernets URL: cluster ip 
+      - Kubernets URL: <cluster-ip:port> 
+      - Disable kubernetes server certificate check
       - Credentials: Create new credential with the token we generated earlier, and name it something like `k8s-jenkins-token`
       - click `Test Connection` to verify the connection
-- Lets create the minimal image for jenkins agent, so that jenkins jnlp agent and actual environment for build, can be in same container.
-- Not really whats exactly good, as i do not like running jnlp agnet as sidecar container along side the actual build environment in same pod.
-- Yes, for sure, it will consume more resources, but it will be easier to manage and debug.
+      - Pod labels -> Add -> key: `jenkins`, value: `slave`
+      - Pod Retention -> On Failure
+      - Enable Garble Collection with timout around 5 mins
+- Let's create a minimal image for the worker to run, so that the Jenkins JNLP (sidecar) and actual worker containers can be in the same Pod.
+- Note: Please do not mix both containers (Jenkins JNLP and actual worker) in the same pod, as it will lead to the pod disconnecting from Jenkins when the actual work in this container consumes all resources and doesn't get a chance to communicate with Jenkins.
+- Earlier I did this for convenience, and I gradually observed that pods leave no trace when they fail due to resource issues. I couldn't observe anything in Grafana; it was completely dark.
 ```bash
-# Create a simple dockerfile for jenkins agent
+# Create a simple dockerfile for the worker container
 cat <<EOF > Dockerfile
 FROM ubuntu:22.04 as UBUNTU_BASE
-FROM jenkins/inbound-agent:latest AS jenkins-agent
 
 ARG CONTAINER_USER=jenkins
 ARG CONTAINER_USER_PASSWORD=jenkins
@@ -286,11 +289,6 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 HOME=/home/${CONTAINER_USER}
 RUN apt update -y && apt install -y curl wget git vim python3 python3-pip
 RUN apt clean -y && rm -rf /var/lib/apt/lists/*
 
-# ------------- Jenkins agent -------------
-COPY --from=jenkins-agent /usr/share/jenkins/agent.jar /usr/share/jenkins/agent.jar
-COPY --from=jenkins-agent /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-agent
-RUN chmod +x /usr/local/bin/jenkins-agent
-
 # ------------ User & directories ---------
 RUN groupadd -g ${CONTAINER_GID} ${CONTAINER_USER} && \
     useradd -u ${CONTAINER_UID} -g ${CONTAINER_GID} --create-home --shell /bin/bash ${CONTAINER_USER} && \
@@ -300,7 +298,6 @@ RUN groupadd -g ${CONTAINER_GID} ${CONTAINER_USER} && \
     chown -R ${CONTAINER_USER}:${CONTAINER_GID} /workspace
 USER ${CONTAINER_USER}
 WORKDIR /workspace
-ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
 EOF
 
 # Build the image
@@ -311,7 +308,7 @@ docker push ubuntu-jenkins-agent:latest
 docker push ubuntu-jenkins-agent:1.0
 ```
 
-- Incase your registry is on bare http, we need to configure containerd to allow insecure registry. Lets add below configuration to `/etc/containerd/config.toml` and restart the containerd `systemctl restart containerd`
+- Incase your registry is on bare http, we need to configure containerd to allow insecure registry. Lets add below configuration to `/etc/containerd/config.toml` and restart the containerd `systemctl restart containerd`. Please note this works in case of older containerd versions.
 ```toml
 version = 2
 [plugins]
@@ -320,7 +317,7 @@ version = 2
   [plugins."io.containerd.grpc.v1.cri".registry.configs."your-registry-ip:5000".tls]
     insecure_skip_verify = true
 ```
-- We nee dto store the artifactory username and password inside kuberenetes as a specific type of secret, lets run this on control node
+- We need to store the artifactory username and password inside kuberenetes as a specific type of secret, lets run this on control node
 ```bash
 kubectl create secret docker-registry my-artifactory-secret \
   --docker-server=your-registry-ip:5000 \
@@ -368,6 +365,7 @@ pipeline {
   }
   parameters {
     booleanParam(name: 'RUN_BACKEND_TESTS', defaultValue: true, description: 'Run backend tests')
+    booleanParam(name: 'RUN_FRONTEND_TESTS', defaultValue: true, description: 'Run frontend tests')
     
   }
   environment {
@@ -394,6 +392,7 @@ pipeline {
           }
         }
         stage('Frontend Tests') {
+          when { expression { params.RUN_FRONTEND_TESTS } }
           agent { kubernetes { yaml podTemplate(
             memReq: '512Mi',
             memLim: '1Gi',
@@ -436,6 +435,18 @@ kind: Pod
 spec: 
   containers:
     - name: jnlp
+      image: jenkins/inbound-agent:jdk21
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      env:
+        - name: GIT_SSL_NO_VERIFY
+          value: ${gitSSLNoVerify}
+    - name: worker
       image: ${image}
       tty: true
       imagePullSecrets:
@@ -461,20 +472,38 @@ spec:
 // Lets run tests
 def runTests(String testType) {
 
-  checkout([
-    $class: 'GitSCM'
-    branches: scm.branches,
-    userRemoteConfigs: scm.userRemoteConfigs
-    extensions: [
-      [$class: 'CloneOption', depth: 1, shallow: true, noTags: true],
-      [$class: 'CleanBeforeCheckout']
-    ]
-  ])
+  container('worker') {
+    String repoUrl = scm.userRemoteConfigs[0].url
+    String credId = scm.userRemoteConfigs[0].credentialsId
+    String branch = env.BRANCH_NAME
 
-  echo "Running ${testType} tests"
-  sh """
-    # Add your test commands here
-  """
+    withCredentials([usernamePassword(
+      credentialsId: credId,
+      usernameVariable: 'USER',
+      passwordVariable: 'PASSWORD'
+    )]) {
+      sh """
+        #!/bin/bash
+        set -e
+        git -c credential.helper='!f() { echo "username=\${USER}"; echo "password=\${PASSWORD}"; }; f' clone --depth 1 --single-branch --branch '${branch}' '${repoUrl}' .
+      """
+    }
+
+    // checkout([
+    //   $class: 'GitSCM'
+    //   branches: scm.branches,
+    //   userRemoteConfigs: scm.userRemoteConfigs
+    //   extensions: [
+    //     [$class: 'CloneOption', depth: 1, shallow: true, noTags: true],
+    //     [$class: 'CleanBeforeCheckout']
+    //   ]
+    // ])
+
+    echo "Running ${testType} tests"
+    sh """
+      # Add your test commands here
+    """
+  }
 }
 ```
 - Once you have pushed the branch, trigger the build on Jenkins, monitor the pods in the Kubernetes cluster to ensure they are running correctly.
@@ -512,6 +541,7 @@ def runTests(String testType) {
     - `helm show values prometheus-community/kube-prometheus-stack > my-custom-values`
     - Once done, you can use this file to override the default values like password, limits etc at the time of app installation.
     - Here in this case, we are worried about value of `adminPassword` under `grafana` section.
+  
   - How do we install the app using helm ?
     - `helm install my-monitoring prometheus-community/kube-prometheus-stack -f my-custom-values --namespace monitoring --create-namespace`
     - or if your upgrading the existing release with new values ?
@@ -519,10 +549,24 @@ def runTests(String testType) {
     - Let Port forward svc/my-monitoring-grafana to access the grafana UI 
     - `kubectl port-foward svc/my-monitoring-grafana 3000:80 -n monitoring --address 0.0.0.0 &`
     - `curl http://localhost:3000` or use the control node ip and port 3000 to access the grafana UI
+  
+  - Port forwarding the service is for 5min dubug, its not at good for prod envs. Either we should use NodePort or Ingress.
+    ```bash
+    kubectl get svc -n monitoring
+    kubectl edit svc monitoring-stack-grafana -n monitoring
+    # Change 'type' from ClusterIP to NodePort in specs, add 'nodePort' in spec:ports
+    # yeah save it.and verify the node port in the svc
+    kubectl get svc -n monitoring monitoring-stack-grafana
+    ```
+
   - If i wanted  inspect the yaml (or app) installed by helm, where do i need go and check ?
     - `helm get manifest my-monitoring -n monitoring`
     - `helm get values my-monitoring -n monitoring`
     - `helm get all my-monitoring -n monitoring`
+  - How do we uninstall the app using helm ?
+    - `helm uninstall my-monitoring -n monitoring` 
+  - How do we list the releases installed by helm ?
+    - `helm list -n monitoring`
 
 ### 4.5 All the terms Helm, artifacthub.io, CNCF, Kubernetes related ?
 - To clear the sky completely, yes they are intimately related. They were built in a very specific order, usually because the previous invention created new, massive headache that needed solving..
@@ -542,6 +586,141 @@ def runTests(String testType) {
   - Developed by CNCF
   - The problem it solved: The CNCF realized the community needed a safe, centralized "Google Search" for helm charts and other kubernetes tools.
   - What it is today: Aritifact hub is a official CNCF registry, it scans thousands of github repos, checks the helm chars for securiy vlunerabilites, verifies the official publishers, and gives you one single website (https://artifacthub.io/) to search them.
+
+
+
+### 4.6 What if the nodes in the cluster loaded heavily in such way that they stop responding to stop  responding to the SSH or send its `kubelet` heartbeat?
+- This phenamena is known be a **Resource Starvation**
+- Sometimes pods essentially become a massive black hole, sucking up 100% of CPU or RAM. Because it consuemed everything, the underlying linux OS didnt even have enough cpu time left to process your SSH keystrokes, and the `kubelet` didnt have enough power to tell the master node it was still alive.
+- To prevent this from ever happening again, you do not just set limits on the node; you attack the problem from tow different angles.
+- 1. **Defence1: Pod Resource Limits**
+- 2. **Defence2: Kubelet Resource Reservation**
+  - Kubernetes has a brillient built-in feature for this called **Node Allocatable Resources**
+  - You configure the `kubelet` on your worker nodes to physically fence off a chunk of CPU and RAM that pods are legally not allowed to touch.
+  - Configure below setting in each of worker nodes.
+  ```bash
+  sudo vi /var/lib/kubelet/config.yaml
+  
+  #Add below configuration:
+
+  systemdReserved:
+    cpu: "500m"
+    memory: "1Gi"
+  kubeReserved:
+    cpu: "500m"
+    memory: "1Gi"
+  evictionHard:
+    memory.available: "500Mi"
+    nodefs.available: "10%"
+  enforceNodeAllocatable:
+    - pods
+
+  #Restart the kubelet service:
+  sudo systemctl restart kubelet
+  ```
+
+
+## 5. Specific Debugs 
+### 5.1 A Control node suddenly went offline, with its kubelet service throwing error as `Apr 21 12:56.15 control_node1 kubelet[2111888]: E0421 12:56.152886 2111888 kubelet.go:3336] "No need to create a mirror pod, since failed to get node info from the cluster" err="node \">
+- If you look at this error, it's easier to understand the root cause behind the disconnectivity of the control node.
+- The kubelet service is throwing an error that it's not able to find current node information in the cluster info. This means that according to the cluster info from the API server, the node is not present in the cluster. Either someone modified the configuration or **changed the current hostname** of the server.
+- If you have changed the hostname, please change it back to the original one as it was when the cluster was created and restart the kubelet service. 
+- But if you think these may not be root cause. we can go over few possibilities.
+#### Suspect1: Expired Certificates
+- If the cluster was built using `kubeadm` exactly one year ago, your internal control plane certificates have likey expired. The API refuses to start if the TLS certs are not valid
+  ```bash
+  # check certificate expiry
+  sudo kubeadm certs check-expiration
+  # if certificates are expired, renew them
+  sudo kubeadm certs renew all
+  ```
+#### Suspect2: It can be anything..
+- Here we cant make use of `kubectl` as control node is completely down. We have to inspect the raw API server logs using `crictl`
+  ```bash
+  # Lets understand why api server is not responding ...
+  sudo crictl logs --tail 100 --follow $(sudo crictl ps -a -q --name kube-apiserver | head -n 1)
+
+  # If incase above api server shows issues with some kind 
+  # 'Error while dialing: dial tcp 127.0.0.1:2379: operatin was canceled.
+  # authentication error: `unable to authenticatee the request`, 
+  # err=[invalid bearer token, service account has been invalidated]
+  # The specific port, 2879 is default port for etcd (a k8s configuration db).
+  # It means API server somehow, not able to authenticate with the etcd.
+  # Why ? is etcd got down due to diskspace issue ? or OOM (out of memory) ? lets verify
+  sudo df -h
+  sudo free -h
+  sudo crictl ps -a | grep etcd
+  sudo crictl logs --tail 100 --follow $(sudo crictl ps -a -q --name etcd | head -n 1)
+
+  # Incase if we see any error like `port bind address already in use`, 
+  # it means either muliple instance of etcd is running, or some other process is using the same port.
+  # Anyway lets restart the db again. We will not loose the data here as in 
+  # harddrive at `/var/lib/etcd`.
+  sudo crictl rm -f $(sudo crictl ps -a -q --name etcd)
+
+  # If we do not see any error in the etcd logs, we do still see the apiserver auth issue.
+  # It may be a reason of TLS certificate mismatch. 
+  # Are both apiserver and etcd using same certs paths ?
+  sudo cat /etc/kubernetes/manifests/etcd.yam | grep -i "trusted-ca-file\|cert-file\|key-file"
+  sudo cat /etc/kuebernetes/manifests/kube-apiserver.yaml | grep -i "trusted-ca-file\|cert-file\|key-file"
+  # If they are using same certs path. We can also supsect chance of curruption of crytographic contents
+  # in the certificates file, Lets verify here..
+  # whether apiserver server is presenting correct client cert to the etcd server...
+  # etcd server has its own issuer placed at /etc/kubernetes/pki/etcd/ca.crt
+  sudo openssl x509 -in /etc/kubernetes/pki/etcd/ca.crt -noout -text | grep -i "issuer"
+  sudo openssl x509 -in /etc/kubernetes/pki/etcd/server.crt -noout -text | grep -i "issuer"
+  sudo openssl x509 -in /etc/kubernetes/pki/apiserver-etcd-client.crt -noout -text | grep -i "issuer"
+  # from above output, we have to understand issuer of each cert and make sure they are same.
+  # we can also verify the trust of the certs using `openssl verify` command.
+  sudo openssl verify -CAfile /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/etcd/server.crt
+  sudo openssl verify -CAfile /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/apiserver-etcd-client.crt
+  # If you suspect here something is really broken, lets regenerate the client cert for the apiserver.
+  sudo mv /etc/kubernetes/pki/apiserver-etcd-client.crt /tmp/
+  sudo mv /etc/kubernetes/pki/apiserver-etcd-client.key /tmp/
+  sudo kubeadm init phase certs apiserver-etcd-client
+  # now verify the trust again
+  sudo openssl verify -CAfile /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/apiserver-etcd-client.crt
+  # reboot api server
+  sudo crictl stop $(sudo crictl ps -a -q --name kube-apiserver)
+  sudo crictl start $(sudo crictl ps -a -q --name kube-apiserver)
+  ```
+
+
+### 5.2 ok, do you aware which type of distributed storage system is used by a freshly made vannila K8s cluster ? or what is the default storage class here ? How do we install one ?
+- To give a short answer, Out of box, a freshly built k8s cluster has absolutely zero default distributed storage. 
+- At this stage, K8s doesnt know how to store persistent data by default, it needs a **CSI (Container Storage Interface) provider.** plugin to be installed.
+- Without CSI plugin, the only storage cluster natively understand is `hostPath` or `local` volume. These are strictly tied to physical node. 
+- Just like Calico (CNI plugin), we need to install  a storage controller. Once its installed, it wiil automatically create a **Storage Class**. When you create a PVC, k8s will hand that request to the storage plugin, which will dynamically provision the virtual drive.
+- **Longhorn** (originally created by Rancher/SUSE) is the absolute gold standard for team dont want to spend months learning complex storage engineeering.
+- Here is straightforward guide to install longhorn on the cluster right away..
+  - **Step1: The prerequisites.**
+    - A CSI needs to actually talk to physical hard drives. Due to this, Linux OS on workers nodes need two standard packages to be installed, so they understand Longhorn storage language (iSCSI and NFS).
+    ```bash
+    # On every node
+    sudo apt update
+    sudo apt install open-iscsi nfs-common -y
+
+    # or
+    ansible kube_node -i host.ini -m apt -a "name=open-iscsi,nfs-common state=present" -k
+    ```
+  - **Step2: Install Longhorn.**
+    ```bash
+    # Install Longhorn
+    kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
+    # Wait for Longhorn to be ready
+    kubectl wait --for=condition=ready pod -l app=longhorn-manager -n longhorn-system --timeout=120s
+    ```
+  - **Step3: See the Magic (the UI)**
+    - Longhorn has built in dashboard. To access it from your network, we have to configure the nodeport for the frontend service of longhorn-ui.
+    ```bash
+    kubectl patch service longhorn-frontend -n longhorn-system -p '{"spec":{"type":"NodePort","ports":[{"name":"http","port":80,"targetPort":80,"nodePort":30080,"protocol":"TCP"}]}}'
+    ```
+    - Now you can access the Longhorn UI at `http://<your-k8s-master-ip>:30080`
+
+
+
+
+
 
 
 
