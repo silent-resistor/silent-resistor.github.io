@@ -1,4 +1,4 @@
 ---
 title: "Resources"
 ---
-*This is my Loot bin — Stream-of-consciousness madness!*
+*This is my Loot bin — Unconscious stream of madness!*
