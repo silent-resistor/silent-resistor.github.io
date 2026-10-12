@@ -18,6 +18,7 @@ date: 2026-04-14
 ## 2. What is Secure Software Development Lifecycle (SSDLC) ?
 - During SDLC, security testing was introduced very late in the lifecycle. ﻿Bugs, flaws, and other vulnerabilities were identified late, making them far more expensive and time-consuming to fix. In most cases, security testing was not considered during the testing phase, so end-users reported bugs after deployment. Secure SDLC models aim to introduce security at every stage of the SDLC.
 - A study conducted by the Systems and Sciences institute at IBM discovered that it costs six times more to fix a bug found during implementation than one identified as early as during the design phase. It also reported that it costs 15 times more if flaws are identified during testing and up to 100 times more costly if identified during the maintenance and operation phases. 
+![ssdlc](/resources_redteam/ssdlc.png)
 ### 2.1 Understanding security posture
 - Perform gap analysis to identify what activities and policies exist in your organisation and how effective they are.
 - Create software security intiatives (SSI) by establishing realistic and achievable goals with defined metrics for success.
