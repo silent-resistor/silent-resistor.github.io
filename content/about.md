@@ -15,6 +15,8 @@ By day, I am a Devops engineer architecting private clouds and wrangling automat
 
 Despite what the degree on my wall or the title on my resume says, I am often just a guy staring at a blinking cursor at 3 AM, wondering why my packets are ghosting me. I'm not an advanced malware developer (yet) - Just a student of the craft who knows the thrill of a Metasploit shell, and the peotic irony of code doing exactly what it was never supposed to do.
 
+![My theme](/mytheme.png)
+
 ## > systemctl show \*${current_tasks}\*.service -P Id,Description 
 - **infrastructure.service** - Orchestrating the silent chaos of background servers. Trying to write automation so smooth it feels like peotry...until a single misplaced YAML space reminds me how fragile the digital world really is.
 - **exploration.service** - TryHackMe and Youtube deep-dives at 2 AM. My brain is a black hole of curiosity, and I'm still searching for the flag that keeps me awake.
