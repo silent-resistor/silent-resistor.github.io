@@ -7,7 +7,7 @@
       {{ .Content }}
 
       <div class="search-container">
-        <input type="text" id="resourceSearchInput" placeholder="Search resources..." aria-label="Search resources">
+        <input type="text" id="resourceSearchInput" placeholder="Search resources..." aria-label="Search resources" data-pagefind-path="{{"pagefind/pagefind.js" | relURL}}">
       </div>
 
       <div class="directory-tree">
@@ -34,8 +34,9 @@
             <ul style="list-style: none; padding-left: 25px; margin-top: 10px; border-left: 1px dashed #444;">
               {{ range $resources }}
                 {{ if eq .File.Dir $dir }}
-                  <li style="margin-bottom: 10px;">
+                  <li style="margin-bottom: 10px;" data-url="{{ .RelPermalink }}">
                     📄 <a href="{{ .Permalink }}" style="text-decoration: none;">{{ .Title }}</a>
+                  <div class="resource-exerpt" hidden></div>
                   </li>
                 {{ end }}
               {{ end }}
@@ -85,6 +86,16 @@
     color: #888;
   }
 
+  .resource-exerpt {
+    margin: 4px 0 0 24px;
+    font-size: 0.85rem;
+    color: #999;
+  }
+
+  .resource-exerpt mark {
+    background: var(--theme-color, #ff79c6);
+    color: #000;
+  }
 
 </style>
 
@@ -92,55 +103,92 @@
 <script>
 
   document.addEventListener("DOMContentLoaded", function() {
+    const MIN_FULLTEXT_CHARS = 3;
     const searchInput = document.getElementById("resourceSearchInput");
-    const resourceItems = document.querySelectorAll(".directory-tree li");
-    const folders = document.querySelectorAll('details');
-    
-    searchInput.addEventListener("input", function() {
-      const searchTerm = this.value.toLowerCase();
+    const PAGEFIND_PATH = searchInput.dataset.pagefindPath;
+    const tree = document.querySelector(".directory-tree");
+    const resourceItems = Array.from(tree.querySelectorAll("li"));
+    const folders = tree.querySelectorAll('details');
+    const normalizeUrl = url => url.replace(/index\.html$/, "").replace(/\/?$/, "/");
+    let pagefindPromise = null;
+    let latestSearchId = 0;
+
+    function loadPagefind() {
+      if (!pagefindPromise) {
+        pagefindPromise = import(PAGEFIND_PATH)
+          .then(async pagefind => { await pagefind.init(); return pagefind; })
+          .catch(err => { pagefindPromise = null; throw err; });
+      }
+      return pagefindPromise;
+    }
+
+    function render(searchTerm, isVisible, excerpts = {}) {
       let hasVisibleItems = false;
-
       resourceItems.forEach(item => {
-        const title = item.textContent.toLowerCase();
-        const foldername = item.closest('details').querySelector('summary').textContent.toLowerCase();
-        if (title.includes(searchTerm) || foldername.includes(searchTerm)) {
-          item.style.display = "";
-          hasVisibleItems = true;
-        } else {
-          item.style.display = "none";
-        }
-
+        const visible = isVisible(item);
+        const excerpt = visible ? excerpts[normalizeUrl(item.dataset.url)] : "";
+        const excerptEl = item.querySelector('.resource-exerpt');
+        item.style.display = visible ? "" : "none";
+        excerptEl.innerHTML = excerpt || "";
+        excerptEl.hidden = !excerpt;
+        hasVisibleItems = hasVisibleItems || visible;
       });
 
       folders.forEach(folder => {
-        const items = folder.querySelectorAll("li");
-        let folderHasVisibleItems = false;
-        items.forEach(item => {
-          if (item.style.display !== "none") {
-            folderHasVisibleItems = true;
-          }
-        });
-        if (folderHasVisibleItems) {
-          folder.setAttribute("open", true);
-        } else {
-          folder.removeAttribute("open");
-        }
+        const folderHasVisibleItems = Array.from(folder.querySelectorAll("li")).
+          some(li => li.style.display !== "none");
+        folder.toggleAttribute("open", folderHasVisibleItems);
       });
 
-      let noResultsMsg = document.querySelector(".no-results");
+      let noResultsMsg = tree.querySelector(".no-results");
       if (!hasVisibleItems && searchTerm) {
         if (!noResultsMsg) {
           noResultsMsg = document.createElement("div");
           noResultsMsg.className = "no-results";
           noResultsMsg.textContent = "No resources found matching your search.";
-          document.querySelector(".directory-tree").appendChild(noResultsMsg);
+          tree.appendChild(noResultsMsg);
         }
       } else if (noResultsMsg) {
         noResultsMsg.remove();
       }
 
-    });
+    };
 
+    function titleSearch(searchTerm) {
+      render(searchTerm, item => {
+        const title = item.querySelector("a").textContent.toLowerCase();
+        const folderName = item.closest("details").querySelector("summary").textContent.toLowerCase();
+        return title.includes(searchTerm) || folderName.includes(searchTerm);
+      })
+    }
+
+    async function fullTextSearch(searchTerm, searchId) {
+      try {
+        const pagefind = await loadPagefind();
+        const search = await pagefind.debouncedSearch(searchTerm, {filters: {section: "resources"}});
+        if (search === null || searchId !== latestSearchId) return;
+        const results = await Promise.all(search.results.map(result => result.data()));
+        if (searchId !== latestSearchId) return;
+        const excerpts = {};
+        results.forEach(result => {
+          excerpts[normalizeUrl(result.url)] = result.excerpt;
+        });
+        render(searchTerm, item => normalizeUrl(item.dataset.url) in excerpts, excerpts);
+      } catch (err) {
+        console.warn("Full-text search unavailable, falling back to title search", err);
+        if (searchId === latestSearchId) titleSearch(searchTerm);
+      }
+    }
+
+    searchInput.addEventListener("input", () => {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const searchId = ++latestSearchId;
+      if (searchTerm.length >= MIN_FULLTEXT_CHARS) {
+        fullTextSearch(searchTerm, searchId);
+      } else {
+        titleSearch(searchTerm);
+      }
+    });
   });
 
 </script>

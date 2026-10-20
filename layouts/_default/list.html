@@ -6,10 +6,11 @@
     {{ end }}
     
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search posts..." aria-label="Search posts">
+        <input type="text" id="searchInput" placeholder="Search posts..." aria-label="Search posts" data-pagefind-path="{{ "pagefind/pagefind.js" | relURL }}" data-section="{{ .Section }}" />
     </div>
 
-    <div class="posts">
+    <div class="posts" id="searchResults" style="display: none; "></div>
+    <div class="posts" id="postList">
         {{ range .Paginator.Pages }}
             <article class="post on-list">
                 <h2 class="post-title">
@@ -50,24 +51,102 @@
     <!-- Add javascript for search functionality -->
      <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const MIN_FULLTEXT_CHARS = 3;
             const searchInput = document.getElementById('searchInput');
-            const posts = document.querySelectorAll('.post.on-list');
+            const PAGEFIND_PATH = searchInput.dataset.pagefindPath;
+            const SECTION = searchInput.dataset.section;
+            const postList = document.getElementById('postList');
+            const searchResults = document.getElementById('searchResults');
+            const posts = postList.querySelectorAll('.post.on-list');
+            let pagefindPromise = null;
+            let latestSearchId = 0;
 
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
+            function loadPagefind() {
+                if (!pagefindPromise) {
+                    pagefindPromise = import(PAGEFIND_PATH)
+                        .then(async pagefind => { await pagefind.init(); return pagefind; })
+                        .catch(err => { pagefindPromise = null; throw err; });
+                }
+                return pagefindPromise;
+            }
 
+            function showPostList(show) {
+                postList.style.display = show ? '' : 'none';
+                searchResults.style.display = show ? 'none' : '';
+            }
+
+            function createElement(tag, className, text) {
+                const el = document.createElement(tag);
+                if (className) el.className = className;
+                if (text) el.textContent = text;
+                return el;
+            }
+
+            function titleSearch(searchTerm) {
+                showPostList(true);
                 posts.forEach(function(post) {
-                    const title = post.querySelector('.post-title').textContent.toLowerCase();
-                    const content = post.querySelector('.post-content') ? post.querySelector('.post-content').textContent.toLowerCase(): '';
-                    const tags = post.querySelector('.post-tags') ? post.querySelector('post-tags').textContent.toLowerCase() : '';
+                    const text = ['.post-title', '.post-content', '.post-tags']
+                        .map(selector => post.querySelector(selector)?.textContent.toLocaleLowerCase() || '')
+                        .join(' ');
                     
-                    if (title.includes(searchTerm) || content.includes(searchTerm) || tags.includes(searchTerm)) {
-                        post.style.display = '';
-                    } else {
-                        post.style.display = 'none';
+                    post.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            }
+
+            function renderResults(results) {
+                searchResults.replaceChildren();
+                if (!results.length) {
+                    searchResults.appendChild(createElement('div', 'no-results', 'No posts found matching your search.'));
+                }
+                results.forEach(function(result) {
+                    const article = createElement('article', 'post on-list');
+                    const title = createElement('h2', 'post-title');
+                    const link = createElement('a', '', result.meta.title || result.url);
+                    link.href = result.url;
+                    title.appendChild(link);
+                    article.appendChild(title);
+                    if (result.meta.date) {
+                        const date = createElement('div', 'post-date');
+                        date.appendChild(createElement('time', 'post-date', result.meta.date));
+                        article.appendChild(date);
                     }
-                })
-            })
+                    if (result.meta.tags ) {
+                        article.appendChild(createElement('span', 'post-tags', result.meta.tags));
+                    }
+                    const excerpt = createElement('div', 'post-excerpt');
+                    excerpt.innerHTML = result.excerpt;
+                    article.appendChild(excerpt);
+                    searchResults.appendChild(article);
+                });
+                showPostList(false);
+                
+            }
+
+            async function fullTextSearch(searchTerm, searchId) {
+                try {
+                    const pagefind = await loadPagefind();
+                    const search = await pagefind.debouncedSearch(searchTerm, { filters: { section: SECTION }});
+                    if (search === null || searchId !== latestSearchId) return;
+                    const results = await Promise.all(search.results.map(result => result.data()));
+                    if (searchId !== latestSearchId) return;
+                    renderResults(results);
+                } catch (error) {
+                    console.warn('Full-text search unavailable, falling back to title search');
+                    if (searchId === latestSearchId) titleSearch(searchTerm);
+                }
+            }
+
+            searchInput.addEventListener('focus', () => loadPagefind().catch(() => {}), { once: true });
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim().toLocaleLowerCase();
+                const searchId = ++latestSearchId;
+                if (searchTerm.length < MIN_FULLTEXT_CHARS) {
+                    titleSearch(searchTerm);
+                    return;
+                } else {
+                    fullTextSearch(searchTerm, searchId);
+                }
+            });
         })
      </script>
 

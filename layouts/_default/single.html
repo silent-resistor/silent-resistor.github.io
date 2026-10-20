@@ -1,13 +1,13 @@
 {{ define "main" }}
 <div class="post-container">
   <div class="post-main">
-    <article class="post">
+    <article class="post"{{ if in (slice "resources" "posts") .Section }} data-pagefind-body data-pagefind-filter="section:{{ .Section }}"{{ end }}>
       <h1 class="post-title">
         <a href="{{ .Permalink }}">{{ .Title | markdownify }}</a>
       </h1>
       <div class="post-meta">
         {{- if .Date -}}
-          <time class="post-date">
+          <time class="post-date" data-pagefind-meta="date">
             {{- partial "post-date" . -}}
             {{- if and $.Site.Params.showLastUpdated .Lastmod -}}
               &nbsp;{{- partial "post-lastmod" . -}}
@@ -23,7 +23,7 @@
       </div>
 
       {{ if .Params.tags }}
-        <span class="post-tags">
+        <span class="post-tags" data-pagefind-meta="tags">
           {{ range .Params.tags }}
           #<a href="{{ (urlize (printf "tags/%s/" .)) | absLangURL }}">{{ . }}</a>&nbsp;
           {{ end }}
@@ -39,13 +39,15 @@
         {{- end -}}
       </div>
 
-      {{ if eq .Type $.Site.Params.contentTypeName }}
-        {{ partial "posts_pagination.html" . }}
-      {{ end }}
+      <div data-pagefind-ignore>
+        {{ if eq .Type $.Site.Params.contentTypeName }}
+          {{ partial "posts_pagination.html" . }}
+        {{ end }}
+        {{ if not (.Params.hideComments | default false)}}
+          {{ partial "comments.html" . }}
+        {{ end }}
+      </div>
 
-      {{ if not (.Params.hideComments | default false) }}
-        {{ partial "comments.html" . }}
-      {{ end }}
     </article>
   </div>
 </div>
