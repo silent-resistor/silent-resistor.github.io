@@ -471,8 +471,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- Adding Mermaid support -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  // Convert Hugo code blocks to Mermaid divs
+  document.addEventListener('DOMContentLoaded', function() {
+    const mermaidBlocks = document.querySelectorAll('code.language-mermaid');
+    mermaidBlocks.forEach((block) => {
+      const pre = block.parentElement;
+      const mermaidDiv = document.createElement('div');
+      mermaidDiv.className = 'mermaid';
+      mermaidDiv.textContent = block.textContent;
+      pre.replaceWith(mermaidDiv);
+    });
 
-
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose'
+    });
+  });
+</script>
 
 
 
